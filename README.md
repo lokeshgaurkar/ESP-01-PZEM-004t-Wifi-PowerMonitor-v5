@@ -1,4 +1,4 @@
-# PowerMonitor (ESP-01 + PZEM-004T v3.0)
+#PowerMonitor (ESP-01 + PZEM-004T v3.0)
 
 PowerMonitor is a lightweight electricity monitoring firmware for ESP-01 (ESP8266) with a modern web dashboard and offline OTA updates.
 
