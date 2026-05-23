@@ -112,3 +112,8 @@ PowerMonitor is an ESP8266-based energy monitoring system with a rich web dashbo
 
 - Captive portal auto-popup behavior depends on client OS and is not 100% guaranteed on every Windows configuration.
 - After changing Wi-Fi credentials, reconnect using the new SSID/password after reboot.
+
+## Developer 
+
+- Name: Lokesh Gaurkar
+- Email: lokeshgaurkar444@gmail.com
