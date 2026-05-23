@@ -1,117 +1,114 @@
-#PowerMonitor (ESP-01 + PZEM-004T v3.0)
+# PowerMonitor (ESP8266 + PZEM-004T v3)
 
-PowerMonitor is a lightweight electricity monitoring firmware for ESP-01 (ESP8266) with a modern web dashboard and offline OTA updates.
+PowerMonitor is an ESP8266-based energy monitoring system with a rich web dashboard, Wi-Fi AP mode, captive portal behavior, bill estimation, and OTA firmware updates.
 
-It reads electrical data from a PZEM-004T v3.0 module and serves a local dashboard over Wi-Fi AP mode for live monitoring and bill estimation.
+## Core Features
 
-Features
-Live electrical metrics:
-Voltage (V)
-Current (A)
-Power (W)
-Energy (kWh)
-Frequency (Hz)
-Power factor (PF)
-Live system metrics (web UI bars):
-CPU usage estimate (% loop load)
-RAM usage (% of boot-time free heap)
-Free heap (bytes)
-Smooth reading display using EMA filtering
-Energy reset with confirmation flow
-Tariff-based electricity bill calculator
-EEPROM persistence:
-Energy value / offset
-Tariff settings
-Local font and favicon hosting from LittleFS
-Offline OTA firmware update page (/update)
-mDNS support (powermonitor.local when supported by client)
-Hardware
-ESP-01 / ESP8266
-PZEM-004T v3.0
-Stable 3.3V power supply for ESP-01
-UART wiring suitable for your board configuration
-Firmware Stack
-Arduino core for ESP8266
-ESP8266WiFi
-ESP8266WebServer
-ESP8266mDNS
-PZEM004Tv30
-EEPROM
-LittleFS
-Updater
-Network Behavior
-Device starts in Access Point mode:
+- Live electrical monitoring:
+  - Voltage (V)
+  - Current (A)
+  - Power (W)
+  - Energy (kWh)
+  - Frequency (Hz)
+  - Power Factor (PF)
+- Smoothed live readings using EMA for stable UI values.
+- Hardware-backed energy source using PZEM cumulative kWh.
+- Energy reset with confirmation flow.
 
-SSID: PowerMonitor
-Password: 11223344
-Hostname: powermonitor
-Typical URL: http://192.168.4.1/
-Project Structure (Runtime)
-Main sketch: sketch_mar2b_2_newUISkin.ino
-LittleFS assets:
-/fonts/Sora-Regular.woff2
-/fonts/Sora-SemiBold.woff2
-/fonts/Sora-Bold.woff2
-/fonts/JetBrainsMono-SemiBold.woff2
-/favicon.png
-HTTP Endpoints
-GET / : Main dashboard
-GET /data : JSON payload with live measurements + tariff + system usage
-GET /reset : Reset energy counter (logical reset via offset)
-GET /tariff?meter=...&ship=...&tax=...&r1=...&r2=...&r3=... : Save tariff
-GET /update : OTA upload page
-POST /updatefw : Upload compiled .bin firmware
-/data JSON Keys
-Measurement keys:
-v, c, p, e, f, pf
-Tariff keys:
-meter, ship, tax, r1, r2, r3
-System keys:
-cpu (loop-load estimate %)
-ramu (RAM used %)
-ramf (free heap bytes)
-Build and Flash
-Open the sketch in Arduino IDE.
-Select an ESP8266 board profile suitable for ESP-01.
-Install required libraries (including PZEM004Tv30).
-Upload filesystem assets to LittleFS (fonts + favicon).
-Flash firmware to ESP-01.
-Connect to AP PowerMonitor and open http://192.168.4.1/.
-OTA Update Workflow
-Build new firmware and export .bin.
-Open dashboard and go to Firmware Update.
-Upload the .bin file.
-Device restarts automatically on successful update.
-Energy and Billing Logic
-PZEM hardware energy is used as the source of truth.
-Logical reset is performed by storing an energy_offset_kwh.
-Bill calculation uses slab rates:
-0-100 units at r1
-101-300 units at r2
-300+ units at r3
-Additional costs:
-Meter charge
-Shipping per unit
-Tax on subtotal
-ESP-01 Constraints and Notes
-GPIO and memory are limited on ESP-01.
-CPU metric is an approximation from firmware loop timing, not a hardware performance counter.
-RAM usage is relative to boot-time free heap; useful for trend monitoring.
-Keep additional libraries minimal to avoid heap pressure.
-Troubleshooting
-Dashboard not loading:
-Confirm connection to PowerMonitor AP
-Visit http://192.168.4.1/
-Missing styles/fonts:
-Re-upload LittleFS assets
-OTA failed:
-Ensure valid .bin and stable Wi-Fi connection
-Check available sketch space
-Sensor values NaN/stale:
-Verify UART wiring and PZEM power
-Security Considerations
-AP password should be changed for production use.
-OTA endpoint is local and unauthenticated in current form.
-Avoid exposing this AP beyond trusted local access.
-License
-Add your preferred license here (MIT, Apache-2.0, etc.).
+## System Monitoring Features
+
+- CPU loop load estimation (percentage).
+- RAM usage estimation (used % + free bytes).
+- Runtime performance sampling and smoothing.
+
+## Web UI Features
+
+- Single-file embedded web pages (inside `.ino`) for:
+  - Main Dashboard (`/`)
+  - Firmware Update Page (`/update`)
+  - Wi-Fi Settings Page (`/wifi`)
+- Modern responsive design with animated cards and status indicators.
+- Power spike animation on Power card for meaningful jumps.
+- Dashboard Wi-Fi chip button opens Wi-Fi settings page.
+
+## Wi-Fi / Network Features
+
+- ESP8266 Access Point mode.
+- Configurable AP SSID/password via Wi-Fi settings page.
+- Wi-Fi credentials validation:
+  - SSID: 1 to 32 chars
+  - Password: 8 to 64 chars
+- Credential persistence in EEPROM.
+- Auto reboot after saving new Wi-Fi credentials.
+- Captive portal support (DNS catch-all + probe route redirects):
+  - `/generate_204`
+  - `/hotspot-detect.html`
+  - `/ncsi.txt`
+  - `/connecttest.txt`
+
+## Bill Calculator Features
+
+- Configurable tariff inputs:
+  - Meter charge
+  - Shipping per unit
+  - Tax percent
+  - Slab rates (0–100, 101–300, 300+)
+- Real-time bill estimate from live kWh.
+- Tariff persistence in EEPROM.
+
+## OTA Firmware Update Features
+
+- Web-based firmware upload via `/update`.
+- Upload progress UI.
+- Update validation via `Updater` API.
+- Automatic device restart on successful update.
+
+## Data Persistence (EEPROM)
+
+- Energy value and offset.
+- Tariff structure.
+- Wi-Fi config structure (with magic marker validation).
+
+## API / Routes
+
+- `GET /` -> Main dashboard page.
+- `GET /data` -> JSON live data payload.
+- `GET /reset` -> Reset energy counter.
+- `GET /tariff?...` -> Save tariff values.
+- `GET /wifi` -> Wi-Fi settings page.
+- `GET /wifi-save?ssid=...&pass=...` -> Save AP credentials + reboot.
+- `GET /update` -> OTA update page.
+- `POST /updatefw` -> OTA firmware binary upload.
+
+## File System / Assets
+
+- Uses LittleFS for static assets:
+  - `/fonts/...`
+  - `/favicon.png`
+  - `/favicon.ico`
+
+## Dependencies
+
+- `ESP8266WiFi`
+- `ESP8266WebServer`
+- `ESP8266mDNS`
+- `DNSServer`
+- `PZEM004Tv30`
+- `EEPROM`
+- `LittleFS`
+- `Updater`
+
+## Typical Usage Flow
+
+1. Power on device.
+2. Connect to AP.
+3. Open dashboard (or captive portal popup when supported).
+4. Monitor live electrical values.
+5. Configure tariff and view bill estimate.
+6. Open Wi-Fi page to change AP SSID/password when needed.
+7. Use OTA page to update firmware.
+
+## Notes
+
+- Captive portal auto-popup behavior depends on client OS and is not 100% guaranteed on every Windows configuration.
+- After changing Wi-Fi credentials, reconnect using the new SSID/password after reboot.
