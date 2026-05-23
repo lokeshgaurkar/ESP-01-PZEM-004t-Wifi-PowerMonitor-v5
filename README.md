@@ -1,4 +1,4 @@
-# PowerMonitor (ESP8266 + PZEM-004T v3)
+# PowerMonitor (ESP8266 + PZEM-004T v5)
 
 PowerMonitor is an ESP8266-based energy monitoring system with a rich web dashboard, Wi-Fi AP mode, captive portal behavior, bill estimation, and OTA firmware updates.
 
